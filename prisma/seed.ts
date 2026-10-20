@@ -12,7 +12,18 @@ async function main() {
 
   const defaultPasswordHash = await bcrypt.hash('Password@123', 10);
 
-  // 1. Seed Mentor / Admin
+  // 1. Seed Admin directly in database (per task specification)
+  const admin = await prisma.user.create({
+    data: {
+      name: 'Super Admin',
+      email: 'admin@example.com',
+      password: defaultPasswordHash,
+      role: Role.ADMIN,
+    },
+  });
+  console.log(`Created Admin: ${admin.email} (Password: Password@123)`);
+
+  // 2. Seed Mentor
   const mentor = await prisma.user.create({
     data: {
       name: 'Senior Mentor Alex',
