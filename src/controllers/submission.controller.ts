@@ -15,10 +15,9 @@ export const createSubmission = async (
     const normalizedRepo = repoUrl.trim().toLowerCase().replace(/\/$/, '');
     const trimmedProjectName = projectName.trim();
 
-    // Duplicate Prevention 1: Check if this repository URL was already submitted by the student
+    // Duplicate Prevention 1: Check if this repository URL was already submitted (by you or another student)
     const existingRepo = await prisma.projectSubmission.findFirst({
       where: {
-        studentId,
         repoUrl: {
           equals: normalizedRepo,
           mode: 'insensitive',
@@ -27,9 +26,12 @@ export const createSubmission = async (
     });
 
     if (existingRepo) {
+      const isSelf = existingRepo.studentId === studentId;
       res.status(409).json({
         success: false,
-        message: 'Duplicate submission: You have already submitted a project with this repository URL.',
+        message: isSelf
+          ? 'Duplicate submission: You have already submitted a project with this repository URL.'
+          : 'Duplicate submission: This repository URL has already been submitted by another student.',
         data: {
           existingSubmissionId: existingRepo.id,
           existingProjectName: existingRepo.projectName,

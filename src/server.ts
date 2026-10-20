@@ -5,8 +5,12 @@ import { prisma } from './config/prisma';
 
 async function bootstrap() {
   try {
-    // 1. Ensure PostgreSQL is up (using embedded-postgres on port 5433 if external PG not active)
-    await ensurePostgresRunning(ENV.EMBEDDED_PG_PORT);
+    const isLocalDb = ENV.DATABASE_URL.includes('127.0.0.1') || ENV.DATABASE_URL.includes('localhost');
+    if (isLocalDb) {
+      await ensurePostgresRunning(ENV.EMBEDDED_PG_PORT);
+    } else {
+      console.log('[Database] Using Cloud PostgreSQL instance (Neon).');
+    }
 
     // 2. Test database connection
     await prisma.$connect();
@@ -29,7 +33,9 @@ async function bootstrap() {
         console.log('[Server] HTTP server closed.');
         await prisma.$disconnect();
         console.log('[Prisma] Database disconnected.');
-        await stopEmbeddedPostgres();
+        if (isLocalDb) {
+          await stopEmbeddedPostgres();
+        }
         process.exit(0);
       });
     };
