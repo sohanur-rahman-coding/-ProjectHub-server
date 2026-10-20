@@ -13,7 +13,7 @@ const generateToken = (payload: JwtPayload): string => {
 
 export const register = async (req: Request<{}, {}, RegisterInput>, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
     const normalizedEmail = email.toLowerCase().trim();
 
     const existingUser = await prisma.user.findUnique({
@@ -35,7 +35,7 @@ export const register = async (req: Request<{}, {}, RegisterInput>, res: Respons
         name: name.trim(),
         email: normalizedEmail,
         password: hashedPassword,
-        role: Role.STUDENT, // Self-signup is always STUDENT
+        role: (role as Role) || Role.STUDENT,
       },
       select: {
         id: true,
