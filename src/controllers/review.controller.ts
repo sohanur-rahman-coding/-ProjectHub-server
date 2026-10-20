@@ -112,8 +112,8 @@ export const updateSubmissionReview = async (
       data: {
         status,
         reviewFeedback: feedback ? feedback.trim() : null,
-        reviewedAt: new Date(),
-        reviewedById: mentorId,
+        reviewedAt: status === 'PENDING' ? null : new Date(),
+        reviewedById: status === 'PENDING' ? null : mentorId,
       },
       include: {
         student: {

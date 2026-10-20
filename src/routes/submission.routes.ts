@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { Role } from '@prisma/client';
-import { createSubmission, getMySubmissions } from '../controllers/submission.controller';
+import { createSubmission, getMySubmissions, updateSubmission } from '../controllers/submission.controller';
 import { authenticateJwt, requireRole } from '../middleware/auth.middleware';
 import { validateBody } from '../middleware/validate';
 import { createSubmissionSchema } from '../schemas/submission.schema';
@@ -13,6 +13,7 @@ router.use(authenticateJwt);
 router.use(requireRole(Role.STUDENT, Role.ADMIN));
 
 router.post('/', submissionRateLimiter, validateBody(createSubmissionSchema), createSubmission);
+router.put('/:id', validateBody(createSubmissionSchema), updateSubmission);
 router.get('/my', getMySubmissions);
 
 export default router;

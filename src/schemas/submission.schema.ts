@@ -24,7 +24,7 @@ export const createSubmissionSchema = z.object({
 });
 
 export const updateReviewStatusSchema = z.object({
-  status: z.enum([SubmissionStatus.APPROVED, SubmissionStatus.REJECTED]),
+  status: z.enum([SubmissionStatus.APPROVED, SubmissionStatus.REJECTED, SubmissionStatus.PENDING]),
   feedback: z.string().max(1000, 'Feedback cannot exceed 1000 characters').optional().nullable(),
 });
 

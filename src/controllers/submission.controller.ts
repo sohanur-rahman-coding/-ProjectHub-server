@@ -123,3 +123,75 @@ export const getMySubmissions = async (
     next(error);
   }
 };
+
+export const updateSubmission = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const studentId = req.user!.userId;
+    const { id } = req.params;
+    const { projectName, repoUrl, liveUrl, description }: CreateSubmissionInput = req.body;
+
+    const submission = await prisma.projectSubmission.findUnique({
+      where: { id },
+    });
+
+    if (!submission) {
+      res.status(404).json({ success: false, message: 'Project submission not found' });
+      return;
+    }
+
+    // Permission check: only student who owns it (or ADMIN)
+    if (submission.studentId !== studentId && req.user!.role !== 'ADMIN') {
+      res.status(403).json({ success: false, message: 'You do not have permission to update this submission' });
+      return;
+    }
+
+    const normalizedRepo = repoUrl.trim().toLowerCase().replace(/\/$/, '');
+    const trimmedProjectName = projectName.trim();
+
+    // Check duplicate repo URL against other submissions
+    const existingRepo = await prisma.projectSubmission.findFirst({
+      where: {
+        id: { not: id },
+        repoUrl: { equals: normalizedRepo, mode: 'insensitive' },
+      },
+    });
+
+    if (existingRepo) {
+      res.status(409).json({
+        success: false,
+        message: 'Duplicate submission: This repository URL is already used by another project.',
+      });
+      return;
+    }
+
+    const updated = await prisma.projectSubmission.update({
+      where: { id },
+      data: {
+        projectName: trimmedProjectName,
+        repoUrl: normalizedRepo,
+        liveUrl: liveUrl.trim(),
+        description: description.trim(),
+        status: submission.status === 'REJECTED' ? 'PENDING' : submission.status,
+      },
+      include: {
+        reviewedBy: {
+          select: { id: true, name: true, email: true },
+        },
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Project submission updated successfully!',
+      data: {
+        submission: updated,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};

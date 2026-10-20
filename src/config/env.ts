@@ -9,4 +9,6 @@ export const ENV = {
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
   DATABASE_URL: process.env.DATABASE_URL || 'postgresql://postgres:password@127.0.0.1:5433/postgres?schema=public',
   EMBEDDED_PG_PORT: parseInt(process.env.EMBEDDED_PG_PORT || '5433', 10),
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '422045332088-c3tv2iscoj6916ntj3bkoiin9nsgt8bh.apps.googleusercontent.com',
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || '',
 };

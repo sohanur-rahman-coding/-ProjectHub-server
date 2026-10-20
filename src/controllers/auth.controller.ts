@@ -147,3 +147,67 @@ export const getMe = async (req: AuthenticatedRequest, res: Response, next: Next
     next(error);
   }
 };
+
+export const googleAuth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { credential, role } = req.body;
+    if (!credential) {
+      res.status(400).json({ success: false, message: 'Google credential token is required' });
+      return;
+    }
+
+    // Verify token with Google's tokeninfo API
+    const googleRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`);
+    if (!googleRes.ok) {
+      res.status(401).json({ success: false, message: 'Invalid or expired Google token' });
+      return;
+    }
+
+    const payload: any = await googleRes.json();
+    if (!payload.email) {
+      res.status(400).json({ success: false, message: 'Google account has no verified email' });
+      return;
+    }
+
+    const normalizedEmail = payload.email.toLowerCase().trim();
+
+    let user = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
+
+    if (!user) {
+      const randomPassword = await bcrypt.hash(Math.random().toString(36), 10);
+      user = await prisma.user.create({
+        data: {
+          name: payload.name || normalizedEmail.split('@')[0],
+          email: normalizedEmail,
+          password: randomPassword,
+          role: (role as Role) || Role.STUDENT,
+        },
+      });
+    }
+
+    const token = generateToken({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Logged in with Google successfully',
+      data: {
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          createdAt: user.createdAt,
+        },
+        token,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
