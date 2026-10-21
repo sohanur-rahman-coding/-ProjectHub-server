@@ -1,6 +1,7 @@
 /**
  * ProjectHub Server Entry Point
- * Enables running with `nodemon index.js` or `node index.js`
+ * Supports both standalone execution (`nodemon index.js` / `node index.js`)
+ * and Vercel Serverless Function exports (`@vercel/node`).
  */
 require('dotenv/config');
 
@@ -11,5 +12,14 @@ try {
   console.warn('[Warning] tsx/cjs could not be loaded directly:', e.message);
 }
 
-// Load and bootstrap the Express application
-require('./src/server.ts');
+// Import Express application
+const appModule = require('./src/app');
+const app = appModule.default || appModule;
+
+// If running outside Vercel serverless environment, start HTTP listener
+if (!process.env.VERCEL) {
+  require('./src/server.ts');
+}
+
+// Export app for Vercel serverless handler
+module.exports = app;

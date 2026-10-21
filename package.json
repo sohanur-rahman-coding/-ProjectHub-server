@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon index.js",
     "dev:tsx": "tsx watch src/server.ts",
-    "build": "rimraf dist && tsc",
+    "build": "prisma generate && rimraf dist && tsc",
+    "vercel-build": "prisma generate && rimraf dist && tsc",
     "start": "node index.js",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
