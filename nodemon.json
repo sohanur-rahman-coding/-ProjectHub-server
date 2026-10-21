@@ -1,0 +1,6 @@
+{
+  "watch": ["src", "index.js", ".env"],
+  "ext": "ts,js,json",
+  "ignore": ["node_modules", "dist", ".pg-data"],
+  "exec": "node index.js"
+}
